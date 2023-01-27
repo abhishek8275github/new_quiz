@@ -8,6 +8,8 @@ public class MainTest {
 		System.out.println("new quiz ");
 
 		System.out.println(" naik change ");
+		
+		System.out.println("database script is ready");
 	}
 
 }
