@@ -7,6 +7,7 @@ public class MainTest {
 		System.out.println("new quiz stariting");
 		System.out.println("new quiz ");
 
+		System.out.println(" naik change ");
 	}
 
 }
