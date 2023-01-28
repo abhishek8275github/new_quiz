@@ -1,0 +1,245 @@
+package com.velocity.quiz;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Scanner;
+
+public class QuizApp  implements QzInterface {
+	
+	Connection con = null;
+	Statement st = null;
+	ResultSet rs=null;
+	Student student = new Student();
+	Scanner sc = new Scanner(System.in);
+
+	// to get user details
+	public Student getUserDetails() {
+		System.out.println("Enter your First Name");
+		student.setfName(sc.nextLine());
+		System.out.println("Enter your Last Name");
+		student.setlName(sc.nextLine());
+		System.out.println("Enter your Mobile Number");
+		student.setMobileNumber(sc.nextLong());
+		return student;
+	}
+
+	// get connection and statement object
+	public Statement getstatement() {
+		ConnectionDb connection = new ConnectionDb();
+		con = connection.dataBaseConnection();
+
+		try {
+			st = con.createStatement();
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+		return st;
+
+	}
+
+	// select services from the list
+	public void selectService(Student details) {
+		System.out.printf("To attempt quiz  ::Press 1%nTo get Result    ::Press 2%nTo get Merit List::Press 3%n");
+		int service = sc.nextInt();
+		switch (service) {
+		case 1:
+			checkEntry(details);
+			break;
+		case 2:
+			displayResult(details);
+			break;
+		case 3:
+			getMeritList();
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	// restrict student to give exam only once
+	public Student checkEntry(Student details) {
+		getstatement();
+		// check whether table is empty or not
+		String SqlQueryCheck = "select exists(select 1 from student.result);";
+		int empty = 0;
+		try {
+			 rs = st.executeQuery(SqlQueryCheck);
+			while (rs.next()) {
+				empty = rs.getInt(1);
+			}
+		} catch (SQLException e2) {
+			e2.printStackTrace();
+		}
+		switch (empty) {
+		case 0:
+			attemptQuiz(details);
+			break;
+		// check whether Quiz attempted or not
+		case 1:
+			int attempted = 0;
+			String sqlQueryStudentEntry = "select exists(select fname,lName from student.result where fName='"
+					+ details.getfName() + "' and lName='" + details.getlName() + "');";
+			try {
+				 rs = st.executeQuery(sqlQueryStudentEntry);
+				while (rs.next()) {
+					attempted = rs.getInt(1);
+				}
+				switch (attempted) {
+				case 0:
+					attemptQuiz(details);
+					break;
+				case 1:
+					System.out.println("You have already attempted Quiz");
+					displayResult(details);
+					break;
+				default:
+					break;
+				}
+			} catch (SQLException e) {
+
+				e.printStackTrace();
+			}
+			break;
+		default:
+			break;
+		}
+
+		return student;
+
+	}
+
+	// give test and save data to database
+	public Student attemptQuiz(Student details) {
+		getstatement();
+		// iterate over all questions
+		int count = 0;
+		try {
+			for (int i = 1; i <= 10; i++) {
+				String sqlQuery = "select id,questions,option1,option2,option3,option4 from student.quebank "
+						+ "where id=" + i;
+				 rs = st.executeQuery(sqlQuery);
+				while (rs.next()) {
+					System.out.printf(rs.getInt(1) + "%n" + rs.getString(2) + "%n" + rs.getString(3) + "%n"
+							+ rs.getString(4) + "%n" + rs.getString(5) + "%n" + rs.getString(6) + "%n");
+
+				}
+				// To restrict input to option availability
+				int ans = 0;
+				while (true) {
+					System.out.println("Option 1:Press 1	Option 2:Press 2	Option 3:Press 3	Option 4:Press 4");
+					ans = sc.nextInt();
+					if (ans > 0 && ans < 5) {
+						break;
+					}
+				}
+				// check answer given by student with the right answer
+				String input = "select option" + ans + " from student.quebank where id=" + i;
+				rs = st.executeQuery(input);
+				String option = null;
+				while (rs.next()) {
+
+					option = rs.getString(1);
+				}
+
+				String sql = "select answer from student.quebank" + " where id=" + i;
+				rs = st.executeQuery(sql);
+				String check = null;
+				while (rs.next()) {
+					check = rs.getString(1);
+				}
+				if (check.equals(option)) {
+					count++;
+				}
+			}
+			// calculate grade and save to database
+			String fname = student.getfName();
+			String lname = student.getlName();
+			String grade = null;
+
+			if (count >= 8) {
+				grade = "A";
+			} else if (count >= 6 && count <= 7) {
+				grade = "B";
+			} else if (count == 5) {
+				grade = "C";
+			} else {
+				grade = "Fail";
+			}
+			String sqlQuery = "insert into result(fName,lName,score,grade)" + " values(" + "'" + fname + "'" + "," + "'"
+					+ lname + "'" + "," + count + "," + "'" + grade + "'" + ")";
+
+			st.executeUpdate(sqlQuery);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		// display marks
+		displayResult(details);
+		return student;
+
+	}
+
+	@Override
+
+	public void displayResult(Student details) {
+		System.out.println("Result of " + details.getfName() + " " + details.getlName());
+		getstatement();
+		String sqlQuery = "select concat(fName,'  ',lName) as 'Full Name',score,grade \r\n" + "from result\r\n"
+				+ "where fName='" + details.getfName() + "' && lName='" + details.getlName() + "';";
+		try {
+			 rs = st.executeQuery(sqlQuery);
+			while (rs.next()) {
+				System.out.println("Name of Student::" + rs.getString(1) + "\r\n" + "Marks Obtained::"
+						+ rs.getInt(2) + "\t" + "Grade::" + rs.getString(3));
+			}
+			rs.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// to display all students based on rank
+	@Override
+	public void getMeritList() {
+		getstatement();
+		String sqlQuery = "select rank() over (order by score desc) as 'Rank' ,\r\n"
+				+ "concat(fName,' ',lName) as 'Student Name',score,grade\r\n"
+				+ "from student.result order by score desc\r\n" + "; ";
+		System.out.println("Rank\t Name Of Student\t MarksObtained\t Grade");
+		try {
+			 rs = st.executeQuery(sqlQuery);
+			while (rs.next()) {
+				System.out.printf(rs.getInt(1) + "\t " + rs.getString(2) + "\t\t" + rs.getInt(3) + "\t\t "
+						+ rs.getString(4) + "%n");
+			}
+			rs.close();
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+	}
+
+	// to close resources
+	public void closeResource() {
+		try {
+			st.close();
+			con.close();
+			rs.close();
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void particularRecord() {
+
+	}
+
+}
+
+

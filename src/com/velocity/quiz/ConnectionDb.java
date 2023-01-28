@@ -3,7 +3,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class ConnectionDb {
-	Connection conection = null;
+	Connection con = null;
 	
 	public Connection dataBaseConnection() {
 	
@@ -14,13 +14,13 @@ public class ConnectionDb {
 	
 		try {
 			Class.forName(driver);
-			conection = DriverManager.getConnection(url, uid, pass);
+			con = DriverManager.getConnection(url, uid, pass);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
 		
-		return conection;
+		return con;
 	}
 
 }
