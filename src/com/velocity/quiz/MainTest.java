@@ -2,22 +2,20 @@ package com.velocity.quiz;
 
 public class MainTest {
 
-	public static void main(String[] args) throws Exception{
-      
+	public static void main(String[] args){
+	      
 		QuizApp qa = new QuizApp();
 		Student st = new Student();
 		
-		qa.getUserDetails();
+		
 		try {
-		qa.getStatement();
-		qa.selectService(st);
-		qa.attemptQuiz(st);
+			qa.getUserDetails();
+			qa.selectService(st);
+		    
 		}
 		catch(Exception e) {
 			e.printStackTrace();
 		}
-		
-		
 		
 	}
 

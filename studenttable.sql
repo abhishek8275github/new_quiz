@@ -1,4 +1,5 @@
 use quiz;
+
 create table students(
  id int  auto_increment primary key,
  firstname varchar(250),

@@ -6,7 +6,6 @@ public class Student {
 	private String fName;
 	private String lName;
 	private long mobileNumber;
-	
 	public String getfName() {
 		return fName;
 	}
