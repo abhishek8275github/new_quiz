@@ -5,9 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
-import java.sql.*;
 public class QuizApp  implements QzInterface {
-	
+
 	Connection con = null;
 	Statement st = null;
 	ResultSet rs=null;
@@ -16,25 +15,25 @@ public class QuizApp  implements QzInterface {
 
 	// to get user details
 	public Student getUserDetails() {
-		System.out.println("Enter your First Name");
+		System.out.print("Enter your First Name :: ");
 		student.setfName(sc.nextLine());
-		System.out.println("Enter your Last Name");
+		System.out.print("Enter your Last Name :: ");
 		student.setlName(sc.nextLine());
-		System.out.println("Enter your Mobile Number");
+		System.out.print("Enter your Mobile Number :: ");
 		student.setMobileNumber(sc.nextLong());
 		return student;
 	}
 
 	// get connection and statement object
-	public Statement getStatement() throws ClassNotFoundException {
+	public Statement getStatement() {
 		Connector conect = new Connector();
 		con = conect.dbConnection();
-	
+
 
 		try {
 			st = con.createStatement();
 			//st.execute(sql);
-			
+
 		} catch (SQLException e) {
 
 			e.printStackTrace();
@@ -45,10 +44,10 @@ public class QuizApp  implements QzInterface {
 
 	// select services from the list
 	public void selectService(Student details) {
-		System.out.printf("To attempt quiz  ::Press 1%nTo get Result    ::Press 2%nTo get Merit List::Press 3%n");
+		System.out.printf("\nTo Attempt Quiz  ::Enter->1 %nTo Get Result ::Enter->2 %nTo Get Merit List  ::Enter->3 %nTo Exit From Quiz ::Enter->4 %n ");
 		int service = sc.nextInt();
 		switch (service) {
-	
+
 		case 1:
 			checkEntry(details);
 			break;
@@ -58,6 +57,8 @@ public class QuizApp  implements QzInterface {
 		case 3:
 			getMeritList();
 			break;
+		case 4:
+			System.exit(0);
 
 		default:
 			break;
@@ -65,10 +66,10 @@ public class QuizApp  implements QzInterface {
 	}
 
 	// restrict student to give exam only once
-	public Student checkEntry(Student details) throws ClassNotFoundException {
+	public Student checkEntry(Student details){
 		getStatement();
 		// check whether table is empty or not
-		String SqlQueryCheck = "select exists(select 1 from student.result);";
+		String SqlQueryCheck = "select exists(select 1 from quiz.students);";
 		int empty = 0;
 		try {
 			 rs = st.executeQuery(SqlQueryCheck);
@@ -85,8 +86,8 @@ public class QuizApp  implements QzInterface {
 		// check whether Quiz attempted or not
 		case 1:
 			int attempted = 0;
-			String sqlQueryStudentEntry = "select exists(select fname,lName from student.result where fName='"
-					+ details.getfName() + "' and lName='" + details.getlName() + "');";
+			String sqlQueryStudentEntry = "select exists(select firstname,lastname from quiz.students where firstName='"
+					+ details.getfName() + "' and lastname='" + details.getlName() + "');";
 			try {
 				 rs = st.executeQuery(sqlQueryStudentEntry);
 				while (rs.next()) {
@@ -117,31 +118,34 @@ public class QuizApp  implements QzInterface {
 	}
 
 	// give test and save data to database
-	public Student attemptQuiz(Student details) throws ClassNotFoundException {
+	public Student attemptQuiz(Student details){
+		int count = 0;
 		getStatement();
 		// iterate over all questions
-		int count = 0;
+
 		try {
 			for (int i = 1; i <= 10; i++) {
-				String sqlQuery = "select id,questions,option1,option2,option3,option4 from student.quebank "
-						+ "where id=" + i;
+				String sqlQuery = "select qno,question,option_1,option_2,option_3,option_4 from quiz.questionbanks "
+						+ "where qno=" + i;
 				 rs = st.executeQuery(sqlQuery);
 				while (rs.next()) {
-					System.out.printf(rs.getInt(1) + "%n" + rs.getString(2) + "%n" + rs.getString(3) + "%n"
-							+ rs.getString(4) + "%n" + rs.getString(5) + "%n" + rs.getString(6) + "%n");
+					System.out.printf("Q" + rs.getInt(1) + "]" + rs.getString(2) + "%n%n1-> " + rs.getString(3) + "%n2-> "
+							+ rs.getString(4) + "%n3-> " + rs.getString(5) + "%n4-> " + rs.getString(6) + "%n");
 
 				}
 				// To restrict input to option availability
 				int ans = 0;
 				while (true) {
-					System.out.println("Option 1:Press 1	Option 2:Press 2	Option 3:Press 3	Option 4:Press 4");
+					System.out.print("Enter Your (option 1,2,3 and 4) Answer :: ");
 					ans = sc.nextInt();
-					if (ans > 0 && ans < 5) {
+					if (ans > 0 && ans < 5){
 						break;
 					}
-				}
+				 }		
+				//}
 				// check answer given by student with the right answer
-				String input = "select option" + ans + " from student.quebank where id=" + i;
+				System.out.println("\n");
+				String input = "select option_" + ans + " from quiz.questionbanks where qno=" + i; //option_1,option_2,...
 				rs = st.executeQuery(input);
 				String option = null;
 				while (rs.next()) {
@@ -149,7 +153,7 @@ public class QuizApp  implements QzInterface {
 					option = rs.getString(1);
 				}
 
-				String sql = "select answer from student.quebank" + " where id=" + i;
+				String sql = "select answer from quiz.questionbanks" + " where qno=" + i;
 				rs = st.executeQuery(sql);
 				String check = null;
 				while (rs.next()) {
@@ -173,7 +177,7 @@ public class QuizApp  implements QzInterface {
 			} else {
 				grade = "Fail";
 			}
-			String sqlQuery = "insert into result(fName,lName,score,grade)" + " values(" + "'" + fname + "'" + "," + "'"
+			String sqlQuery = "insert into students(firstname,lastname,score,grade)" + " values(" + "'" + fname + "'" + "," + "'"
 					+ lname + "'" + "," + count + "," + "'" + grade + "'" + ")";
 
 			st.executeUpdate(sqlQuery);
@@ -182,18 +186,21 @@ public class QuizApp  implements QzInterface {
 			e.printStackTrace();
 		}
 		// display marks
-		displayResult(details);
+	//	displayResult(details);
+		selectService(details);
 		return student;
+
 
 	}
 
 	@Override
 
 	public void displayResult(Student details) {
-		System.out.println("Result of " + details.getfName() + " " + details.getlName());
+
+		System.out.println("Result of " + student.getfName() + " " + student.getlName());
 		getStatement();
-		String sqlQuery = "select concat(fName,'  ',lName) as 'Full Name',score,grade \r\n" + "from result\r\n"
-				+ "where fName='" + details.getfName() + "' && lName='" + details.getlName() + "';";
+		String sqlQuery =  "select concat(firstname,' ',lastname) as 'Full_Name',score,grade \r\n" + "from quiz.students\r\n"
+				+ "where firstname='" + student.getfName() + "' && lastname='" + student.getlName() + "';";
 		try {
 			 rs = st.executeQuery(sqlQuery);
 			while (rs.next()) {
@@ -204,6 +211,7 @@ public class QuizApp  implements QzInterface {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		selectService(details);
 	}
 
 	// to display all students based on rank
@@ -211,8 +219,8 @@ public class QuizApp  implements QzInterface {
 	public void getMeritList() {
 		getStatement();
 		String sqlQuery = "select rank() over (order by score desc) as 'Rank' ,\r\n"
-				+ "concat(fName,' ',lName) as 'Student Name',score,grade\r\n"
-				+ "from student.result order by score desc\r\n" + "; ";
+				+ "concat(firstname,' ',lastname) as 'Student Name',score,grade\r\n"
+				+ "from quiz.students order by score desc\r\n" + "; ";
 		System.out.println("Rank\t Name Of Student\t MarksObtained\t Grade");
 		try {
 			 rs = st.executeQuery(sqlQuery);
@@ -225,6 +233,7 @@ public class QuizApp  implements QzInterface {
 
 			e.printStackTrace();
 		}
+		selectService(student);
 	}
 
 	// to close resources
@@ -245,5 +254,3 @@ public class QuizApp  implements QzInterface {
 	}
 
 }
-
-
