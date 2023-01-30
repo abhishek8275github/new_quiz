@@ -2,7 +2,7 @@ package com.velocity.quiz;
 
 public class MainTest {
 
-	public static void main(String[] args){
+	public static void main(String[] args) {
 
 		QuizApp qa = new QuizApp();
 		Student st = new Student();
@@ -12,11 +12,11 @@ public class MainTest {
 			qa.getUserDetails();
 			qa.selectService(st);
 
-		}
-		catch(Exception e) {
+		}catch(Exception e) {
 			e.printStackTrace();
 		}
 
-       }
 
+	}
 }
+	

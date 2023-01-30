@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
+
 public class QuizApp  implements QzInterface {
 
 	Connection con = null;
@@ -27,7 +28,12 @@ public class QuizApp  implements QzInterface {
 	// get connection and statement object
 	public Statement getStatement() {
 		Connector conect = new Connector();
-		con = conect.dbConnection();
+
+		con = conect.dbconnection();
+
+		
+		con = conect.dbconnection();
+	
 
 
 		try {
@@ -122,7 +128,6 @@ public class QuizApp  implements QzInterface {
 		int count = 0;
 		getStatement();
 		// iterate over all questions
-
 		try {
 			for (int i = 1; i <= 10; i++) {
 				String sqlQuery = "select qno,question,option_1,option_2,option_3,option_4 from quiz.questionbanks "
@@ -167,7 +172,7 @@ public class QuizApp  implements QzInterface {
 			String fname = student.getfName();
 			String lname = student.getlName();
 			String grade = null;
-
+			
 			if (count >= 8) {
 				grade = "A";
 			} else if (count >= 6 && count <= 7) {
@@ -189,6 +194,7 @@ public class QuizApp  implements QzInterface {
 	//	displayResult(details);
 		selectService(details);
 		return student;
+		
 
 
 	}
@@ -252,5 +258,4 @@ public class QuizApp  implements QzInterface {
 	public void particularRecord() {
 
 	}
-
 }
