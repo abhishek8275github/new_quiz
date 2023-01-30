@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
-
+import java.sql.*;
 public class QuizApp  implements QzInterface {
 	
 	Connection con = null;
@@ -26,12 +26,15 @@ public class QuizApp  implements QzInterface {
 	}
 
 	// get connection and statement object
-	public Statement getstatement() {
-		ConnectionDb connection = new ConnectionDb();
-		con = connection.dataBaseConnection();
+	public Statement getStatement() throws ClassNotFoundException {
+		Connector conect = new Connector();
+		con = conect.dbConnection();
+	
 
 		try {
 			st = con.createStatement();
+			//st.execute(sql);
+			
 		} catch (SQLException e) {
 
 			e.printStackTrace();
@@ -45,6 +48,7 @@ public class QuizApp  implements QzInterface {
 		System.out.printf("To attempt quiz  ::Press 1%nTo get Result    ::Press 2%nTo get Merit List::Press 3%n");
 		int service = sc.nextInt();
 		switch (service) {
+	
 		case 1:
 			checkEntry(details);
 			break;
@@ -57,12 +61,12 @@ public class QuizApp  implements QzInterface {
 
 		default:
 			break;
-		}
+		}		
 	}
 
 	// restrict student to give exam only once
-	public Student checkEntry(Student details) {
-		getstatement();
+	public Student checkEntry(Student details) throws ClassNotFoundException {
+		getStatement();
 		// check whether table is empty or not
 		String SqlQueryCheck = "select exists(select 1 from student.result);";
 		int empty = 0;
@@ -113,8 +117,8 @@ public class QuizApp  implements QzInterface {
 	}
 
 	// give test and save data to database
-	public Student attemptQuiz(Student details) {
-		getstatement();
+	public Student attemptQuiz(Student details) throws ClassNotFoundException {
+		getStatement();
 		// iterate over all questions
 		int count = 0;
 		try {
@@ -187,7 +191,7 @@ public class QuizApp  implements QzInterface {
 
 	public void displayResult(Student details) {
 		System.out.println("Result of " + details.getfName() + " " + details.getlName());
-		getstatement();
+		getStatement();
 		String sqlQuery = "select concat(fName,'  ',lName) as 'Full Name',score,grade \r\n" + "from result\r\n"
 				+ "where fName='" + details.getfName() + "' && lName='" + details.getlName() + "';";
 		try {
@@ -205,7 +209,7 @@ public class QuizApp  implements QzInterface {
 	// to display all students based on rank
 	@Override
 	public void getMeritList() {
-		getstatement();
+		getStatement();
 		String sqlQuery = "select rank() over (order by score desc) as 'Rank' ,\r\n"
 				+ "concat(fName,' ',lName) as 'Student Name',score,grade\r\n"
 				+ "from student.result order by score desc\r\n" + "; ";
