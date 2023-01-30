@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
-
+import java.sql.*;
 public class QuizApp  implements QzInterface {
 	
 	Connection con = null;
@@ -26,12 +26,15 @@ public class QuizApp  implements QzInterface {
 	}
 
 	// get connection and statement object
-	public Statement getStatement() {
-		ConnectionDb connectiondb = new ConnectionDb();
-		con = connectiondb.dataBaseConnection();
+	public Statement getStatement() throws ClassNotFoundException {
+		Connector conect = new Connector();
+		con = conect.dbConnection();
+	
 
 		try {
 			st = con.createStatement();
+			//st.execute(sql);
+			
 		} catch (SQLException e) {
 
 			e.printStackTrace();
@@ -45,6 +48,7 @@ public class QuizApp  implements QzInterface {
 		System.out.printf("To attempt quiz  ::Press 1%nTo get Result    ::Press 2%nTo get Merit List::Press 3%n");
 		int service = sc.nextInt();
 		switch (service) {
+	
 		case 1:
 			checkEntry(details);
 			break;
@@ -57,11 +61,11 @@ public class QuizApp  implements QzInterface {
 
 		default:
 			break;
-		}
+		}		
 	}
 
 	// restrict student to give exam only once
-	public Student checkEntry(Student details) {
+	public Student checkEntry(Student details) throws ClassNotFoundException {
 		getStatement();
 		// check whether table is empty or not
 		String SqlQueryCheck = "select exists(select 1 from student.result);";
@@ -113,7 +117,7 @@ public class QuizApp  implements QzInterface {
 	}
 
 	// give test and save data to database
-	public Student attemptQuiz(Student details) {
+	public Student attemptQuiz(Student details) throws ClassNotFoundException {
 		getStatement();
 		// iterate over all questions
 		int count = 0;
