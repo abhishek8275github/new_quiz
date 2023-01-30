@@ -51,7 +51,9 @@ public class QuizApp  implements QzInterface {
 	// select services from the list
 	public void selectService(Student details) {
 		System.out.printf("\nTo Attempt Quiz  ::Enter->1 %nTo Get Result ::Enter->2 %nTo Get Merit List  ::Enter->3 %nTo Exit From Quiz ::Enter->4 %n ");
+		System.out.print("Enter your choice :: ");
 		int service = sc.nextInt();
+		System.out.print("\n");
 		switch (service) {
 
 		case 1:
